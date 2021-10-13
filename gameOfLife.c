@@ -5,12 +5,14 @@
 
 
    TODO:
-      1) add a flag -f that will save the output to a file called "cell_history.out"
+      [X] add a flag -f that will save the output to a file called "cell_history.out"
+	  [ ] realized that the memory is never freed, because you have to keyboard interupt... oops!
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -33,17 +35,17 @@ void calculateTurn(int * cells, int gridSize);
 
 int getCellNeighbors(int * cells, int cellIndex, int gridSize);
 
-//void saveToFile(int * cells, int gridSize);
+void saveToFile(int * cells, int gridSize, int turn);
 
 int main(int argc, char * argv[]){
 	int * cells;
 	int gridSize;
    unsigned long seed = time(NULL);
 	int valid = 1;
-	//int saveToFile = 0;
+	int saveToFileFlag = 0;
 
-	if (argc != 2 && argc != 3){
-		printf("\nUsage: gameOfLife <grid size n> <OPTIONAL: random seed>\n");
+	if (argc != 2 && argc != 3 && argc != 4){
+		printf("\nUsage: gameOfLife <grid size n> <OPTIONAL: random seed> <optional: -f>\n");
 		return 1;
 	}
 
@@ -53,10 +55,21 @@ int main(int argc, char * argv[]){
 		return 1;
 	}
 
-   if (argc == 2){
+   int modArgc = argc;
+   if (argc == 4 && argv[argc - 1][0] == '-' && argv[argc - 1][1] == 'f'){
+      saveToFileFlag = 1;
+	  fclose(fopen("cell_history.out", "w"));
+      modArgc--;
+   }
+   else if (argc == 4){
+		printf("\nUsage: gameOfLife <grid size n> <OPTIONAL: random seed> <optional: -f>\n");
+      return 1;
+   }
+
+   if (modArgc == 2){
       printf("\nSeed not entered. Will be set to: %ld\n", seed);
    }
-   else if (argc == 3){
+   else if (modArgc == 3){
       seed = (unsigned long) atoi(argv[2]);
       printf("\nSeed entered as: %ld\n", seed);
    }
@@ -79,6 +92,9 @@ int main(int argc, char * argv[]){
 			calculateTurn(cells, gridSize);
 			printf("Turn: %d           Seed: %ld         Grid: %d x %d\n", turn, seed, gridSize, gridSize);
 			printCellData(cells, gridSize);
+         if (saveToFileFlag){
+            saveToFile(cells, gridSize, turn);
+         }
 			turn++;
 		}
 	}
@@ -137,16 +153,16 @@ int randomCellData(int * cells, int gridSize){
 
 void printCellData(int * cells, int gridSize){
 	for (int i = 0; i < gridSize * gridSize; i++){
-      if (cells[i] == CELL_ALIVE){
-         printf("\033[96m");
-		   printf("%c ", cells[i]);
-         printf("\033[0m");
-      }
-      else{
-         printf("\033[33m");
-		   printf("%c ", cells[i]);
-         printf("\033[0m");
-      }
+		if (cells[i] == CELL_ALIVE){
+			printf("\033[96m");
+			printf("%c ", cells[i]);
+			printf("\033[0m");
+		}
+		else{
+			printf("\033[33m");
+			printf("%c ", cells[i]);
+			printf("\033[0m");
+		}
 		if ((i + 1) % gridSize == 0 && i != 0){
 			putchar('\n');
 		}
@@ -154,14 +170,20 @@ void printCellData(int * cells, int gridSize){
 	putchar('\n');
 }
 
-//void saveToFile(int * cells, int gridSize){
-//   for (int i = 0; i < gridSize * gridSize; i++){
-//      //PLACE
-//      if ((i + 1) % gridSize == 0 && i != 0){
-//         //place '\n'
-//      }
-//   }
-//}
+void saveToFile(int * cells, int gridSize, int turn){
+	FILE * fp = fopen("cell_history.out", "a");
+	fprintf(fp, "Turn: %d\n", turn);
+	for (int i = 0; i < gridSize * gridSize; i++){
+		fputc((int)cells[i], fp);
+		fputc((int)' ', fp);
+		if ((i + 1) % gridSize == 0 && i != 0){
+			fputc((int)'\n', fp);
+		}
+    }
+	fputc((int)'\n', fp);
+	fputc((int)'\n', fp);
+    fclose(fp);
+}
 
 int getCellNeighbors(int * cells, int cellIndex, int gridSize){
 	int cellX, cellY;
