@@ -38,7 +38,6 @@ int getCellNeighbors(int * cells, int cellIndex, int gridSize);
 void saveToFile(int * cells, int gridSize, int turn);
 
 int main(int argc, char * argv[]){
-	int * cells;
 	int gridSize;
    unsigned long seed = time(NULL);
 	int valid = 1;
@@ -50,8 +49,8 @@ int main(int argc, char * argv[]){
 	}
 
 	gridSize = atoi(argv[1]);
-	if (gridSize > 255){
-		printf("\nGrid too big!\n");
+	if (gridSize > 255 || gridSize <= 0){
+		printf("\nGrid not valid!\n");
 		return 1;
 	}
 
@@ -74,7 +73,7 @@ int main(int argc, char * argv[]){
       printf("\nSeed entered as: %ld\n", seed);
    }
 
-	cells = malloc(sizeof(int) * gridSize * gridSize);
+	int cells[gridSize * gridSize];
 
 	srand(seed);
 	valid = randomCellData(cells, gridSize);
@@ -98,7 +97,6 @@ int main(int argc, char * argv[]){
 			turn++;
 		}
 	}
-	free(cells);
 	return 0;
 }
 
