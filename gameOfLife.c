@@ -19,7 +19,11 @@
 
 #define CELL_ALIVE 'X'
 #define CELL_DEAD  '-'
+
 #define DELTA_TURN_TIME 75000
+#define OVERPOPULATION_LIMIT 3
+#define UNDERPOPULATION_LIMIT  2
+#define CELL_REVIVAL_NUMBER 3
 
 #define ESC 27
 #define ENTER 10
@@ -242,19 +246,19 @@ void calculateTurn(int * cells, int gridSize){
 
 		int aliveNeighbors = getCellNeighbors(cells, i, gridSize);
 		if (cell == CELL_ALIVE){
-			if (aliveNeighbors < 2){ //death by underpopulation
+			if (aliveNeighbors < UNDERPOPULATION_LIMIT){ //death by underpopulation
 				newCells[i] = CELL_DEAD;
 
 			}
-			else if (aliveNeighbors == 2 || aliveNeighbors == 3){ //continues to live
+			else if (aliveNeighbors == UNDERPOPULATION_LIMIT || aliveNeighbors == OVERPOPULATION_LIMIT){ //continues to live
 				newCells[i] = CELL_ALIVE;
 			}
-			else if (aliveNeighbors > 3){//death by overpopulation
+			else if (aliveNeighbors > OVERPOPULATION_LIMIT){//death by overpopulation
 				newCells[i] = CELL_DEAD;
 			}
 		}
 		else{
-			if (aliveNeighbors == 3){ //make cell alive!!!
+			if (aliveNeighbors == CELL_REVIVAL_NUMBER){ //make cell alive!!!
 				newCells[i] = CELL_ALIVE;
 			}
 			else{
